@@ -43,4 +43,4 @@ jobs:
           git fetch origin maintenance
           git show FETCH_HEAD:scripts/mirror-releases.sh > /tmp/mirror-releases.sh
           chmod +x /tmp/mirror-releases.sh
-          /tmp/mirror-releases.sh TriliumNext/Trilium tsaitang404/trilium-next-notes 5
+          /tmp/mirror-releases.sh TriliumNext/Trilium tsaitang404/Trilium 5
