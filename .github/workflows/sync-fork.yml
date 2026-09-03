@@ -25,6 +25,10 @@ jobs:
           git fetch upstream main
           git checkout main
           git reset --hard "upstream/main"
+          # Restore our sync-fork.yml since upstream doesn't have it
+          git show origin/main:.github/workflows/sync-fork.yml > .github/workflows/sync-fork.yml
+          git add .github/workflows/sync-fork.yml
+          git commit -m "chore: restore sync-fork.yml" || true
           git push --force origin main
 
       - name: Mirror upstream releases
