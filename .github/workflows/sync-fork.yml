@@ -1,0 +1,47 @@
+name: Sync fork with upstream
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  workflows: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Sync code with upstream
+        run: |
+          git config user.name "tsaitang404"
+          git config user.email "tsaitang.agent@gmail.com"
+          git remote add upstream "https://github.com/TriliumNext/Trilium.git"
+          git fetch upstream main
+          git checkout main
+          # Reset to pure upstream (prune commits re-applied below)
+          git reset --hard "upstream/main"
+          # Prune upstream workflows; keep only release.yml
+          cd .github/workflows
+          for f in checks.yml codeql.yml deploy-app.yml deploy-docs.yml dev.yml i18n.yml main-docker.yml mobile.yml nightly.yml playwright.yml release-winget.yml sync-readme.yml update-model-prices.yml update-nix-flake.yml update-pdfjs-viewer.yml web-clipper.yml website.yml; do
+            if [ -f "$f" ]; then git rm --quiet "$f"; fi
+          done
+          cd ../..
+          git commit -m "chore: prune upstream workflows (keep release.yml only)" --allow-empty
+          git push --force origin main
+
+      - name: Mirror upstream releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # fetch mirror script from maintenance branch
+          git fetch origin maintenance
+          git show FETCH_HEAD:scripts/mirror-releases.sh > /tmp/mirror-releases.sh
+          chmod +x /tmp/mirror-releases.sh
+          /tmp/mirror-releases.sh TriliumNext/Trilium tsaitang404/Trilium 5
